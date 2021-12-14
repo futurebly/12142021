@@ -53,10 +53,25 @@ def read(id):
 
         <ul>
             <li><a href="/create/">create</a></li>
+            <li>
+                <form action="/delete/{id}" method='post'>
+                    <input type='submit' value='DELETE'>
+                </form>
+            </li>
         </ul>
     </body>
     </html>
     """
+
+@app.route('/delete/<id>', methods=['POST'])
+def delete(id):
+    con = sqlite3.connect('data.db')
+    cursor = con.cursor()    
+    sql = 'DELETE FROM topics WHERE id = ?'
+    cursor.execute(sql, [id])
+    con.commit()
+    return redirect(f'/')
+
 
 @app.route('/create_process/', methods=['POST'])
 def create_process():
