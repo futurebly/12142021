@@ -10,4 +10,8 @@ def hello_world():
 def read():
     return "Read"
 
+@app.route("/read/2/")
+def read2():
+    return "Read2"
+
 app.run(debug=True,host="0.0.0.0",port="8000")
