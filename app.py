@@ -28,7 +28,7 @@ def index():
     </body>
     </html>
     """
-
+@app.route("/read/", defaults={'id': None})
 @app.route("/read/<id>/")
 def read(id):
     con = sqlite3.connect('data.db')
@@ -53,6 +53,7 @@ def read(id):
 
         <ul>
             <li><a href="/create/">create</a></li>
+            <li><a href="/update/{id}">update</a></li>
             <li>
                 <form action="/delete/{id}" method='post'>
                     <input type='submit' value='DELETE'>
@@ -62,6 +63,46 @@ def read(id):
     </body>
     </html>
     """
+
+@app.route("/update/<id>/")
+def update(id):
+    con = sqlite3.connect('data.db')
+    cursor = con.cursor()
+    cursor.execute('SELECT * FROM topics')
+    rows = cursor.fetchall()
+    liTag = ''
+    for row in rows:
+        liTag = liTag + f'<li><a href="/read/{row[0]}">{row[1]}</a></li>'
+
+    cursor.execute('SELECT * FROM topics WHERE id = ?', (id,))
+    topic = cursor.fetchone()
+    return f"""
+    <html>
+    <body>
+            <h1><a href="/">web</a></h1>
+            <ul>
+                {liTag}
+            </ul>
+            
+            <form action="/update_process/{id}" method="post">
+                <p><input type="text" placeholder="title" name="title" value="{topic[1]}"></p>
+                <p><input type="text" placeholder="body" name="body" value="{topic[2]}"></p>
+                <p><input type="submit" value="UPDATE"></p>
+            </form>
+            <ul>
+                <li><a href="/create">create</a></li>
+                <li><a href="/update">update</a></li>
+                <li>
+                    <form action="/delete/{id}" method="post">
+                        <input type="submit" value="DELETE">
+                    </form>
+                </li>
+            </ul>
+        </body>
+    </html>
+    """
+
+
 
 @app.route('/delete/<id>', methods=['POST'])
 def delete(id):
@@ -83,6 +124,19 @@ def create_process():
     cursor.execute(sql, [title, body])
     con.commit()
     return redirect(f'/read/{cursor.lastrowid}')
+
+@app.route('/update_process/<id>', methods=['POST'])
+def update_process(id):
+    con = sqlite3.connect('data.db')
+    cursor = con.cursor()    
+    title = request.form.get('title')
+    body = request.form.get('body')
+    print(body)
+    sql = 'UPDATE topics SET title = ?, body = ? WHERE id = ?'
+    cursor.execute(sql, [title, body, id])
+    con.commit()
+    return redirect(f'/read/{id}')
+
 
 @app.route("/create/")
 def create():
